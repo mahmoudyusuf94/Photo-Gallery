@@ -1,5 +1,7 @@
 package com.example.blink22.photogallery;
 
+import android.app.Activity;
+import android.content.pm.ActivityInfo;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -8,10 +10,12 @@ import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -23,6 +27,8 @@ import java.util.List;
 
 public class PhotoGalleryFragment extends Fragment {
 
+    private static final int IMAGE_WIDTH = 400;
+    private int cols ;
     private int mCurrentPage = 1;
     private boolean loading = true;
     private static final String TAG = "PhotoGalleryFragment";
@@ -45,10 +51,8 @@ public class PhotoGalleryFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_photo_gallery, container, false);
 
         mPhotoRecyclerView = v.findViewById(R.id.fragment_photo_gallery_recycler_view);
-        mLayoutManager = new GridLayoutManager(getActivity(), 3);
-        mPhotoRecyclerView.setLayoutManager(mLayoutManager);
 
-        //challenge
+        //challenge 1
         mPhotoRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
@@ -72,7 +76,17 @@ public class PhotoGalleryFragment extends Fragment {
                 }
             }
         });
-        //end challenge
+        //end challenge 1
+
+        //challenge 2
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        ((Activity)getContext()).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        cols = displayMetrics.widthPixels/IMAGE_WIDTH;
+        //end challenge 2
+
+        mLayoutManager = new GridLayoutManager(getActivity(), cols);
+//      mLayoutManager = new GridLayoutManager(getActivity(), 3);
+        mPhotoRecyclerView.setLayoutManager(mLayoutManager);
 
         setupAdapter();
         return v;
