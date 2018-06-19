@@ -2,6 +2,8 @@ package com.example.blink22.photogallery;
 
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
+import android.graphics.drawable.Drawable;
+import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,6 +18,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -32,6 +35,7 @@ public class PhotoGalleryFragment extends Fragment {
     private int mCurrentPage = 1;
     private boolean loading = true;
     private static final String TAG = "PhotoGalleryFragment";
+    private ImageView mItemImageView;
     private RecyclerView mPhotoRecyclerView;
     private GridLayoutManager mLayoutManager;
     private PhotoAdapter mAdapter;
@@ -121,7 +125,6 @@ public class PhotoGalleryFragment extends Fragment {
         protected void onPostExecute(List<GalleryItem> galleryItems) {
 //            mItems = galleryItems;
 //            setupAdapter();
-
             mItems.addAll(galleryItems);
             updateUi();
             loading = true;
@@ -129,15 +132,14 @@ public class PhotoGalleryFragment extends Fragment {
     }
 
     private class PhotoHolder extends RecyclerView.ViewHolder{
-        private TextView mTitleTextView;
 
         public PhotoHolder(View itemView){
             super(itemView);
-            mTitleTextView = (TextView) itemView;
+            mItemImageView = (ImageView) itemView.findViewById(R.id.fragment_photo_gallery_image_view);
         }
 
-        public void bindPhoto(GalleryItem item){
-            mTitleTextView.setText(item.getCaption());
+        public void bindPhoto(Drawable drawable){
+            mItemImageView.setImageDrawable(drawable);
         }
     }
 
@@ -151,14 +153,15 @@ public class PhotoGalleryFragment extends Fragment {
 
         @Override
         public PhotoHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            TextView textView = new TextView(getActivity());
-            return new PhotoHolder(textView);
+            LayoutInflater inflater = LayoutInflater.from(getActivity());
+            View view = inflater.inflate(R.layout.gallery_item, parent, false);
+            return new PhotoHolder(view);
         }
 
         @Override
         public void onBindViewHolder(PhotoHolder holder, int position) {
-            GalleryItem galleryItem = mGalleryItems.get(position);
-            holder.bindPhoto(galleryItem);
+            Drawable placeholder = getResources().getDrawable(R.drawable.pp);
+            holder.bindPhoto(placeholder);
         }
 
         @Override
