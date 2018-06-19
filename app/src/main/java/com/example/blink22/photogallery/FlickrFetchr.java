@@ -1,5 +1,6 @@
 package com.example.blink22.photogallery;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 
@@ -54,7 +55,7 @@ public class FlickrFetchr {
         return new String(getUrlBytes(urlSpec));
     }
 
-    public List<GalleryItem> fetchItems() {
+    public List<GalleryItem> fetchItems(int page) {
         List<GalleryItem> items = new ArrayList<>();
         try{
             String url = Uri.parse("https://api.flickr.com/services/rest/")
@@ -64,9 +65,10 @@ public class FlickrFetchr {
                     .appendQueryParameter("format", "json")
                     .appendQueryParameter("nojsoncallback", "1")
                     .appendQueryParameter("extras", "url_s")
+                    .appendQueryParameter("page", Integer.toString(page))
                     .build().toString();
             String jsonString = getUrlString(url);
-            Log.i(TAG, "Fetched data successfully." + jsonString);
+//            Log.i(TAG, "Fetched data successfully." + jsonString);
             JSONObject jsonBody = new JSONObject(jsonString);
             parseItems(items, jsonBody);
 

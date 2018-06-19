@@ -1,8 +1,10 @@
 package com.example.blink22.photogallery;
 
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -12,7 +14,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,30 +23,72 @@ import java.util.List;
 
 public class PhotoGalleryFragment extends Fragment {
 
+    private int mCurrentPage = 1;
+    private boolean loading = true;
     private static final String TAG = "PhotoGalleryFragment";
     private RecyclerView mPhotoRecyclerView;
+    private GridLayoutManager mLayoutManager;
+    private PhotoAdapter mAdapter;
+
+    private int pastVisibleItems, visibleItemCount, totalItemCount;
+
     private List<GalleryItem> mItems  = new ArrayList<>();
 
     public static PhotoGalleryFragment newInstance(){
         return new PhotoGalleryFragment();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View v = inflater.inflate(R.layout.fragment_photo_gallery, container, false);
 
         mPhotoRecyclerView = v.findViewById(R.id.fragment_photo_gallery_recycler_view);
-        mPhotoRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 3));
+        mLayoutManager = new GridLayoutManager(getActivity(), 3);
+        mPhotoRecyclerView.setLayoutManager(mLayoutManager);
+
+        //challenge
+        mPhotoRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                if (dy > 0){
+                    visibleItemCount = mLayoutManager.getChildCount();
+                    totalItemCount = mLayoutManager.getItemCount();
+                    pastVisibleItems = mLayoutManager.findFirstVisibleItemPosition();
+
+                    if(loading){
+                        if((visibleItemCount + pastVisibleItems) >= totalItemCount){
+                            loading = false;
+                            mCurrentPage ++;
+                            new FetchItemTask().execute();
+                            Log.i(TAG, "Page: "+ Integer.toString(mCurrentPage));
+                            Log.i(TAG, "visible Item Count: "+ Integer.toString(visibleItemCount));
+                            Log.i(TAG, "total Item Count: "+ Integer.toString(totalItemCount));
+                            Log.i(TAG, "past Item: "+ Integer.toString(pastVisibleItems));
+
+                        }
+                    }
+                }
+            }
+        });
+        //end challenge
+
         setupAdapter();
         return v;
     }
 
     private void setupAdapter(){
         if(isAdded()){
-            mPhotoRecyclerView.setAdapter(new PhotoAdapter(mItems));
+            mAdapter = new PhotoAdapter(mItems);
+            mPhotoRecyclerView.setAdapter(mAdapter);
         }
     }
+
+    private void updateUi(){
+        mAdapter.notifyDataSetChanged();
+    }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,13 +100,17 @@ public class PhotoGalleryFragment extends Fragment {
 
         @Override
         protected List<GalleryItem> doInBackground(Void... params) {
-            return new FlickrFetchr().fetchItems();
+            return new FlickrFetchr().fetchItems(mCurrentPage);
         }
 
         @Override
         protected void onPostExecute(List<GalleryItem> galleryItems) {
-            mItems = galleryItems;
-            setupAdapter();
+//            mItems = galleryItems;
+//            setupAdapter();
+
+            mItems.addAll(galleryItems);
+            updateUi();
+            loading = true;
         }
     }
 
@@ -105,4 +152,6 @@ public class PhotoGalleryFragment extends Fragment {
             return mGalleryItems.size();
         }
     }
+
+
 }
