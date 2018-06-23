@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 import android.util.Log;
+import android.util.LruCache;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,6 +19,7 @@ import java.util.concurrent.ConcurrentMap;
 public class ThumbnailDownloader <T> extends HandlerThread{
     private static final String TAG = "ThumbnailDownloader";
     private static final int MESSAGE_DOWNLOAD = 0;
+    private LruCache<String , Bitmap> mImageCache; //chapter  - challenge 1
 
     private Handler mRequestHandler;
     private Handler mResponseHandler;
@@ -34,7 +36,19 @@ public class ThumbnailDownloader <T> extends HandlerThread{
     public ThumbnailDownloader (Handler responseHandler){
         super(TAG);
         mResponseHandler = responseHandler;
+        final int maxMemory = (int) Runtime.getRuntime().maxMemory()/1024;
 
+        mImageCache = new LruCache<String, Bitmap>(maxMemory/6);
+    }
+
+    public Bitmap getBitmapFromCache(String url){
+        return mImageCache.get(url);
+    }
+
+    public void addBitmapToCache(String url, Bitmap bitmap){
+        if(mImageCache.get(url) == null){
+            mImageCache.put(url, bitmap);
+        }
     }
 
     public void clearQueue(){

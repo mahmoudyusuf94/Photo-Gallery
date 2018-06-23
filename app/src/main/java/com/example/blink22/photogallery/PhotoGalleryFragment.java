@@ -17,12 +17,15 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -129,7 +132,6 @@ public class PhotoGalleryFragment extends Fragment {
         });
 
         mThumbnailDownloader.start();
-
         mThumbnailDownloader.getLooper();
 
         Log.i(TAG, "Background Thread started");
@@ -163,6 +165,12 @@ public class PhotoGalleryFragment extends Fragment {
         public void bindPhoto(Drawable drawable){
             mItemImageView.setImageDrawable(drawable);
         }
+
+        public void bindGalleryItem(GalleryItem galleryItem){
+            Picasso.get().load(galleryItem.getUrl())
+                    .placeholder(R.drawable.pl)
+                    .into(mItemImageView);
+        }
     }
 
     private  class PhotoAdapter extends RecyclerView.Adapter<PhotoHolder>{
@@ -183,9 +191,12 @@ public class PhotoGalleryFragment extends Fragment {
         @Override
         public void onBindViewHolder(PhotoHolder holder, int position) {
             GalleryItem galleryItem = mGalleryItems.get(position);
-            Drawable placeholder = getResources().getDrawable(R.drawable.pp);
-            holder.bindPhoto(placeholder);
-            mThumbnailDownloader.queueThumbnail(holder, galleryItem.getUrl());
+            holder.bindGalleryItem(galleryItem);
+//            Drawable placeholder = getResources().getDrawable(R.drawable.pl);
+//            holder.bindPhoto(placeholder);
+//            String imageUrl = galleryItem.getUrl();
+//            mThumbnailDownloader.queueThumbnail(holder, imageUrl);
+
 
         }
 
