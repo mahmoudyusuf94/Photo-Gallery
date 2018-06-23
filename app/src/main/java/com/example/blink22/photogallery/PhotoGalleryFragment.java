@@ -2,11 +2,14 @@ package com.example.blink22.photogallery;
 
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
@@ -35,10 +38,10 @@ public class PhotoGalleryFragment extends Fragment {
     private int mCurrentPage = 1;
     private boolean loading = true;
     private static final String TAG = "PhotoGalleryFragment";
-    private ImageView mItemImageView;
     private RecyclerView mPhotoRecyclerView;
     private GridLayoutManager mLayoutManager;
     private PhotoAdapter mAdapter;
+    private ThumbnailDownloader<PhotoHolder> mThumbnailDownloader;
 
     private int pastVisibleItems, visibleItemCount, totalItemCount;
 
@@ -112,6 +115,24 @@ public class PhotoGalleryFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         new FetchItemTask().execute();
+
+        Handler responseHandler = new Handler();
+
+        mThumbnailDownloader = new ThumbnailDownloader<>(responseHandler);
+
+        mThumbnailDownloader.setThumbnailDownloadListener(new ThumbnailDownloader.ThumbnailDownloadListener<PhotoHolder>() {
+            @Override
+            public void onThumbnailDownloaded(PhotoHolder photoHolder, Bitmap thumbnail) {
+                Drawable drawable = new BitmapDrawable(getResources(), thumbnail);
+                photoHolder.bindPhoto(drawable);
+            }
+        });
+
+        mThumbnailDownloader.start();
+
+        mThumbnailDownloader.getLooper();
+
+        Log.i(TAG, "Background Thread started");
     }
 
     private class FetchItemTask extends AsyncTask<Void, Void, List<GalleryItem> >{
@@ -132,6 +153,7 @@ public class PhotoGalleryFragment extends Fragment {
     }
 
     private class PhotoHolder extends RecyclerView.ViewHolder{
+        private ImageView mItemImageView;
 
         public PhotoHolder(View itemView){
             super(itemView);
@@ -160,8 +182,11 @@ public class PhotoGalleryFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(PhotoHolder holder, int position) {
+            GalleryItem galleryItem = mGalleryItems.get(position);
             Drawable placeholder = getResources().getDrawable(R.drawable.pp);
             holder.bindPhoto(placeholder);
+            mThumbnailDownloader.queueThumbnail(holder, galleryItem.getUrl());
+
         }
 
         @Override
@@ -170,5 +195,16 @@ public class PhotoGalleryFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mThumbnailDownloader.quit();
+        Log.i(TAG, "Background thread stopped");
+    }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mThumbnailDownloader.clearQueue();
+    }
 }
