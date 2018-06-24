@@ -1,6 +1,7 @@
 package com.example.blink22.photogallery;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -117,6 +118,7 @@ public class PhotoGalleryFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         updateItems();
+
         setHasOptionsMenu(true);
         Handler responseHandler = new Handler();
 
@@ -230,6 +232,7 @@ public class PhotoGalleryFragment extends Fragment {
         mThumbnailDownloader.clearQueue();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
@@ -237,6 +240,20 @@ public class PhotoGalleryFragment extends Fragment {
 
         MenuItem searchItem = menu.findItem(R.id.menu_item_search);
         final SearchView searchView = (SearchView)  searchItem.getActionView();
+
+
+        MenuItem alarmItem = menu.findItem(R.id.menu_item_polling);
+//        if(PollService.isServiceAlarmOn(getActivity())){
+//            alarmItem.setTitle(R.string.stop_polling);
+//        }else{
+//            alarmItem.setTitle(R.string.start_polling);
+//        }
+        if(PollServiceJobScheduler.isServiceOn(getActivity())){
+            alarmItem.setTitle(R.string.stop_polling);
+        }else{
+            alarmItem.setTitle(R.string.start_polling);
+        }
+
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -268,6 +285,7 @@ public class PhotoGalleryFragment extends Fragment {
         new FetchItemTask(query).execute();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -275,6 +293,14 @@ public class PhotoGalleryFragment extends Fragment {
                 QueryPreferences.setStoredQuery(getActivity(), null);
                 clear();
                 updateItems();
+                return true;
+            case R.id.menu_item_polling:
+//                boolean shouldStartAlarm = !PollService.isServiceAlarmOn(getActivity());
+//                PollService.setServiceAlarm(getActivity(), shouldStartAlarm);
+//                getActivity().invalidateOptionsMenu();
+                boolean shouldStartAlarm = !PollServiceJobScheduler.isServiceOn(getActivity());
+                PollServiceJobScheduler.schedulePolling(getActivity(), shouldStartAlarm);
+                getActivity().invalidateOptionsMenu();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
