@@ -35,7 +35,7 @@ public class PollServiceJobScheduler extends JobService {
     public boolean onStartJob(JobParameters params) {
         Log.i(TAG, "On start job......");
         mCurrentTask = new PollTask();
-        mCurrentTask.execute();
+        mCurrentTask.execute(params);
         return true;
     }
 
