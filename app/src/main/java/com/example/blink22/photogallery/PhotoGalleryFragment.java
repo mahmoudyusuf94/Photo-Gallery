@@ -27,6 +27,8 @@ import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
 
+import junit.framework.Test;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +36,7 @@ import java.util.List;
  * Created by blink22 on 14/06/18.
  */
 
-public class PhotoGalleryFragment extends Fragment {
+public class PhotoGalleryFragment extends VisibleFragment {
 
     private static final int IMAGE_WIDTH = 400;
     private int cols ;
@@ -118,6 +120,9 @@ public class PhotoGalleryFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         updateItems();
+
+//        PollService.setServiceAlarm(getActivity(), true);
+//        TestService.setServiceAlarm(getActivity(), true);
 
         setHasOptionsMenu(true);
         Handler responseHandler = new Handler();
@@ -248,11 +253,11 @@ public class PhotoGalleryFragment extends Fragment {
 //        }else{
 //            alarmItem.setTitle(R.string.start_polling);
 //        }
-        if(PollServiceJobScheduler.isServiceOn(getActivity())){
+         if(PollServiceJobScheduler.isServiceOn(getActivity())){
             alarmItem.setTitle(R.string.stop_polling);
         }else{
             alarmItem.setTitle(R.string.start_polling);
-        }
+        } //challenge JobService
 
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -297,7 +302,6 @@ public class PhotoGalleryFragment extends Fragment {
             case R.id.menu_item_polling:
 //                boolean shouldStartAlarm = !PollService.isServiceAlarmOn(getActivity());
 //                PollService.setServiceAlarm(getActivity(), shouldStartAlarm);
-//                getActivity().invalidateOptionsMenu();
                 boolean shouldStartAlarm = !PollServiceJobScheduler.isServiceOn(getActivity());
                 PollServiceJobScheduler.schedulePolling(getActivity(), shouldStartAlarm);
                 getActivity().invalidateOptionsMenu();

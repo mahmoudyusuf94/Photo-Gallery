@@ -1,17 +1,19 @@
 package com.example.blink22.photogallery;
 
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 
@@ -23,8 +25,15 @@ import java.util.List;
 
 public class PollService extends IntentService {
 
+    public static final String NOTIFICATION_CHANNEL_ID = "PollServiceChannel";
     private static final String TAG = "PollService";
-    private static final long POLL_INTERVAL = AlarmManager.INTERVAL_FIFTEEN_MINUTES;
+//    private static final long POLL_INTERVAL = AlarmManager.INTERVAL_FIFTEEN_MINUTES;
+    private static final long POLL_INTERVAL = 15*1000;
+    public static final String PERM_PRIVATE = "android.permission.RECEIVE_BOOT_COMPLETED";
+    public static final String ACTION_SHOW_NOTIFICATION =
+            "com.example.blink22.photogallery.SHOW_NOTIFICATION";
+    public static final String NOTIFICATION = "NOTIFICATION";
+    public static final String REQUEST_CODE= "REQUEST_CODE";
 
     public PollService(){
         super(TAG);
@@ -55,20 +64,29 @@ public class PollService extends IntentService {
             Intent i = PhotoGalleryActivity.newIntent(this);
             PendingIntent pi = PendingIntent.getActivity(this, 0, i, 0);
 
-            Notification notification = new Notification.Builder(this)
+            NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this,NOTIFICATION_CHANNEL_ID )
                     .setTicker(resources.getString(R.string.new_pictures_title))
                     .setContentText(resources.getString(R.string.new_pictures_text))
                     .setSmallIcon(android.R.drawable.ic_dialog_alert)
                     .setContentTitle(resources.getString(R.string.new_pictures_title))
                     .setContentIntent(pi)
-                    .setAutoCancel(true)
-                    .build();
+                    .setChannelId(NOTIFICATION_CHANNEL_ID)
+                    .setAutoCancel(true);
 
-            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-            notificationManager.notify(0, notification);
+            Notification notification = notificationBuilder.build();
+            showBackgroundNotification(0, notification);
         }
 
         QueryPreferences.setLastResultId(this, resultId);
+    }
+
+    private void showBackgroundNotification(int requestCode, Notification notification){
+        Intent i = new Intent(ACTION_SHOW_NOTIFICATION);
+        i.putExtra(REQUEST_CODE, requestCode);
+        i.putExtra(NOTIFICATION, notification);
+        sendOrderedBroadcast(i,PERM_PRIVATE, null, null,
+                Activity.RESULT_OK, null, null);
+        Log.i(TAG, "Sent SHOW_NOTIFICATION Broadcast...");
     }
 
     public static Intent newIntent(Context context){
@@ -93,6 +111,7 @@ public class PollService extends IntentService {
             alarmManager.cancel(pi);
             pi.cancel();
         }
+        QueryPreferences.setAlarmOn(context, isOn)  ;
     }
 
     public static boolean isServiceAlarmOn(Context context){
@@ -100,4 +119,6 @@ public class PollService extends IntentService {
         PendingIntent pi = PendingIntent.getService(context, 0, i, PendingIntent.FLAG_NO_CREATE);
         return pi != null;
     }
+
+
 }
