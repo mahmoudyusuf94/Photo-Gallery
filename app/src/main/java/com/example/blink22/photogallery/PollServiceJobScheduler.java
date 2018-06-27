@@ -38,6 +38,7 @@ public class PollServiceJobScheduler extends JobService {
     public static final String NOTIFICATION = "NOTIFICATION";
     public static final String REQUEST_CODE= "REQUEST_CODE";
     public static final String NOTIFICATION_CHANNEL_ID = "PollServiceChannel";
+    private static final long POLL_PERIOD = 10*1000*60;
 
     @Override
     public boolean onStartJob(JobParameters params) {
@@ -121,7 +122,7 @@ public class PollServiceJobScheduler extends JobService {
         if(isOn){
             JobInfo jobInfo = new JobInfo.Builder(JOB_ID,
                     new ComponentName(context, PollServiceJobScheduler.class))
-                    .setPeriodic(10*1000)
+                    .setPeriodic(POLL_PERIOD)
                     .setPersisted(true)
                     .build();
             Log.i(TAG, "Scheduling job ....");
