@@ -1,6 +1,7 @@
 package com.example.blink22.photogallery;
 
 import android.app.Activity;
+import android.app.ActivityOptions;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
@@ -194,12 +195,13 @@ public class PhotoGalleryFragment extends VisibleFragment {
                     .into(mItemImageView);
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
         @Override
         public void onClick(View view) {
 //            Intent i = new Intent(Intent.ACTION_VIEW, mGalleryItem.getPhotoPageUri());
             Intent i = PhotoPageActivity
                     .newIntent(getActivity(), mGalleryItem.getPhotoPageUri());
-            startActivity(i);
+            startActivity(i, ActivityOptions.makeSceneTransitionAnimation(getActivity()).toBundle());
         }
     }
 
