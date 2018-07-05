@@ -13,9 +13,11 @@ import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.support.v7.widget.ToolbarWidgetWrapper;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -25,6 +27,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toolbar;
 
 import com.squareup.picasso.Picasso;
 
@@ -100,6 +103,9 @@ public class PhotoGalleryFragment extends VisibleFragment {
         mLayoutManager = new GridLayoutManager(getActivity(), cols);
 //      mLayoutManager = new GridLayoutManager(getActivity(), 3);
         mPhotoRecyclerView.setLayoutManager(mLayoutManager);
+
+        android.support.v7.widget.Toolbar toolbar = (android.support.v7.widget.Toolbar) v.findViewById(R.id.main_toolbar);
+        ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
 
         setupAdapter();
         return v;
@@ -258,7 +264,6 @@ public class PhotoGalleryFragment extends VisibleFragment {
 
         MenuItem searchItem = menu.findItem(R.id.menu_item_search);
         final SearchView searchView = (SearchView)  searchItem.getActionView();
-
 
         MenuItem alarmItem = menu.findItem(R.id.menu_item_polling);
 //        if(PollService.isServiceAlarmOn(getActivity())){
